@@ -1,5 +1,5 @@
 /*
- * Designed and developed by 2022 skydoves (Jaewoong Eum)
+ * Designed and developed by 2024 skydoves (Jaewoong Eum)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.skydoves.chatgpt.core.data.repository.GPTChannelRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.getstream.chat.android.client.utils.onError
-import io.getstream.chat.android.client.utils.onSuccessSuspend
+import io.getstream.log.streamLog
+import io.getstream.result.onSuccessSuspend
 import javax.inject.Inject
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,7 +44,14 @@ class ChatGPTChannelsViewModel @Inject constructor(
   init {
     viewModelScope.launch {
       gptChannelRepository.streamUserFlow().collect { user ->
-        user?.let { gptChannelRepository.joinTheCommonChannel(it) }
+        user?.let {
+          gptChannelRepository.joinTheCommonChannel(it)
+        } ?: run {
+          streamLog {
+            "User is null. Please check the app README.md and ensure " +
+              "**Disable Auth Checks** is ON in the Dashboard"
+          }
+        }
       }
     }
   }
@@ -80,8 +87,11 @@ sealed interface GPTChannelEvent {
 }
 
 sealed interface GPTChannelUiState {
-  object Nothing : GPTChannelUiState
-  object Loading : GPTChannelUiState
+  data object Nothing : GPTChannelUiState
+
+  data object Loading : GPTChannelUiState
+
   data class Success(val channelId: String) : GPTChannelUiState
-  object Error : GPTChannelUiState
+
+  data object Error : GPTChannelUiState
 }

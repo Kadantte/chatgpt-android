@@ -1,5 +1,5 @@
 /*
- * Designed and developed by 2022 skydoves (Jaewoong Eum)
+ * Designed and developed by 2024 skydoves (Jaewoong Eum)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,17 +32,21 @@ import com.skydoves.chatgpt.core.navigation.ChatGPTScreens.Companion.argument_ch
 import com.skydoves.chatgpt.core.preferences.Empty
 import com.skydoves.chatgpt.feature.chat.worker.ChatGPTMessageWorker
 import com.skydoves.chatgpt.feature.chat.worker.ChatGPTMessageWorker.Companion.DATA_FAILURE
+import com.skydoves.chatgpt.feature.chat.worker.ChatGPTMessageWorker.Companion.DATA_MESSAGE_ID
 import com.skydoves.chatgpt.feature.chat.worker.ChatGPTMessageWorker.Companion.DATA_SUCCESS
-import com.skydoves.viewmodel.lifecycle.viewModelLifecycleOwner
+import com.skydoves.chatgpt.feature.chat.worker.ChatGPTMessageWorker.Companion.MESSAGE_EXTRA_CHAT_GPT
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.getstream.chat.android.client.ChatClient
-import io.getstream.chat.android.client.models.Message
+import io.getstream.chat.android.models.Message
+import io.getstream.chat.android.ui.common.state.messages.list.MessageItemState
+import io.getstream.chat.android.ui.common.state.messages.list.MessageListItemState
 import io.getstream.log.streamLog
 import java.util.UUID
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -50,7 +54,7 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class ChatGPTMessagesViewModel @Inject constructor(
-  GPTMessageRepository: GPTMessageRepository,
+  messageRepository: GPTMessageRepository,
   private val chatClient: ChatClient,
   private val workManager: WorkManager,
   savedStateHandle: SavedStateHandle
@@ -69,7 +73,7 @@ class ChatGPTMessagesViewModel @Inject constructor(
     .stateIn(viewModelScope, WhileSubscribedOrRetained, String.Empty)
 
   val isMessageEmpty: StateFlow<Boolean> =
-    GPTMessageRepository.watchIsChannelMessageEmpty(channelId)
+    messageRepository.watchIsChannelMessageEmpty(channelId)
       .stateIn(viewModelScope, SharingStarted.Lazily, false)
 
   fun sendStreamChatMessage(text: String) {
@@ -78,25 +82,31 @@ class ChatGPTMessagesViewModel @Inject constructor(
     }
   }
 
-  fun sendMessage(text: String) {
+  fun sendMessage(text: String, messagesItems: List<MessageListItemState>) {
     messageItemSet.value += text
     viewModelScope.launch {
-      val workRequest = buildGPTMessageWorkerRequest(text)
+      val lastGptMessage = messagesItems
+        .filterIsInstance<MessageItemState>()
+        .filter { it.message.extraData[MESSAGE_EXTRA_CHAT_GPT] == true }
+        .maxByOrNull { it.message.createdAt?.time ?: 0 }
+        ?.message
+      val workRequest = buildGPTMessageWorkerRequest(text, lastGptMessage)
       workManager.enqueue(workRequest)
 
-      val workInfo = workManager.getWorkInfoByIdLiveData(workRequest.id)
-      workInfo.observe(viewModelLifecycleOwner) {
-        if (it.state == WorkInfo.State.SUCCEEDED) {
-          val data = it.outputData.getString(DATA_SUCCESS)
-          streamLog { "gpt message worker success: $data" }
-          messageItemSet.value -= text
-        } else if (it.state == WorkInfo.State.FAILED) {
-          val error = it.outputData.getString(DATA_FAILURE) ?: ""
-          streamLog { "gpt message worker failed: $error" }
-          messageItemSet.value -= messageItemSet.value
-          mutableError.value = error
+      workManager.getWorkInfoByIdFlow(workRequest.id)
+        .collectLatest {
+          if (it.state == WorkInfo.State.SUCCEEDED) {
+            val gptMessageText = it.outputData.getString(DATA_SUCCESS)
+            val gptMessageId = it.outputData.getString(DATA_MESSAGE_ID)
+            streamLog { "gpt message worker success: $gptMessageId $gptMessageText" }
+            messageItemSet.value -= text
+          } else if (it.state == WorkInfo.State.FAILED) {
+            val error = it.outputData.getString(DATA_FAILURE) ?: ""
+            streamLog { "gpt message worker failed: $error" }
+            messageItemSet.value -= messageItemSet.value
+            mutableError.value = error
+          }
         }
-      }
     }
   }
 
@@ -112,7 +122,10 @@ class ChatGPTMessagesViewModel @Inject constructor(
     ).await()
   }
 
-  private fun buildGPTMessageWorkerRequest(text: String): OneTimeWorkRequest {
+  private fun buildGPTMessageWorkerRequest(
+    text: String,
+    lastMessage: Message?
+  ): OneTimeWorkRequest {
     val constraints = Constraints.Builder()
       .setRequiredNetworkType(NetworkType.CONNECTED)
       .build()
@@ -120,6 +133,7 @@ class ChatGPTMessagesViewModel @Inject constructor(
     val data = Data.Builder()
       .putString(ChatGPTMessageWorker.DATA_TEXT, text)
       .putString(ChatGPTMessageWorker.DATA_CHANNEL_ID, channelId)
+      .putString(ChatGPTMessageWorker.DATA_LAST_MESSAGE, lastMessage?.text.orEmpty())
       .build()
 
     return OneTimeWorkRequest.Builder(ChatGPTMessageWorker::class.java)

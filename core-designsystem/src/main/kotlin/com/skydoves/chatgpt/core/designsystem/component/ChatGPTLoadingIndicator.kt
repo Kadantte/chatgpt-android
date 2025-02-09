@@ -1,5 +1,5 @@
 /*
- * Designed and developed by 2022 skydoves (Jaewoong Eum)
+ * Designed and developed by 2024 skydoves (Jaewoong Eum)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,12 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.skydoves.chatgpt.core.designsystem.theme.PURPLE450
+import com.skydoves.chatgpt.core.designsystem.theme.STREAM_PRIMARY
 
 @Composable
 fun BoxScope.ChatGPTLoadingIndicator() {
   CircularProgressIndicator(
     modifier = Modifier.align(Alignment.Center),
-    color = PURPLE450
+    color = STREAM_PRIMARY
   )
 }

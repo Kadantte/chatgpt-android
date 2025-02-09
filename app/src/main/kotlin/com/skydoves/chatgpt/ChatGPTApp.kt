@@ -1,5 +1,5 @@
 /*
- * Designed and developed by 2022 skydoves (Jaewoong Eum)
+ * Designed and developed by 2024 skydoves (Jaewoong Eum)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,4 +20,13 @@ import android.app.Application
 import dagger.hilt.android.HiltAndroidApp
 
 @HiltAndroidApp
-class ChatGPTApp : Application()
+class ChatGPTApp : Application() {
+
+  override fun onCreate() {
+    super.onCreate()
+
+    // install Snitcher to trace global exceptions and restore the app.
+    // https://github.com/skydoves/snitcher
+//    Snitcher.install(this)
+  }
+}

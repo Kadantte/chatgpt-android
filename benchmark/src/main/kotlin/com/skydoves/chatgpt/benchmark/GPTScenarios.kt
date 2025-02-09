@@ -1,5 +1,5 @@
 /*
- * Designed and developed by 2022 skydoves (Jaewoong Eum)
+ * Designed and developed by 2024 skydoves (Jaewoong Eum)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,23 @@
  * limitations under the License.
  */
 
-package com.skydoves.chatgpt.core.model
+package com.skydoves.chatgpt.benchmark
 
-import com.squareup.moshi.Json
-import com.squareup.moshi.JsonClass
+import androidx.benchmark.macro.MacrobenchmarkScope
 
-@JsonClass(generateAdapter = true)
-data class GPTContent(
-  @field:Json(name = "content_type") val content_type: String = "text",
-  @field:Json(name = "parts") val parts: List<String> = listOf()
-)
+fun MacrobenchmarkScope.chatGPTScenarios() {
+  pressHome()
+  startActivityAndWait()
+  device.waitForIdle()
+
+  // -------------
+  // Channels
+  // -------------
+  channelsExplore()
+  navigateFromChannelsToMessages()
+
+  // -------------
+  // Messages
+  // -------------
+  messagesExplore()
+}

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-     Designed and developed by 2022 skydoves (Jaewoong Eum)
+     Designed and developed by 2024 skydoves (Jaewoong Eum)
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -17,6 +17,6 @@
 <resources>
 
   <style name="Theme.ChatGPTAndroid" parent="Theme.AppCompat.DayNight.NoActionBar">
-    <item name="android:statusBarColor">@color/green_darker</item>
+    <item name="android:statusBarColor">@color/stream_primary</item>
   </style>
 </resources>

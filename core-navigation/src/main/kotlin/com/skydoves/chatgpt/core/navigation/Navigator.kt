@@ -1,5 +1,5 @@
 /*
- * Designed and developed by 2022 skydoves (Jaewoong Eum)
+ * Designed and developed by 2024 skydoves (Jaewoong Eum)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,11 +54,13 @@ abstract class AppComposeNavigator : Navigator() {
       is ComposeNavigationCommand.NavigateToRoute -> {
         navigate(navigationCommand.route, navigationCommand.options)
       }
+
       NavigationCommand.NavigateUp -> navigateUp()
       is ComposeNavigationCommand.PopUpToRoute -> popBackStack(
         navigationCommand.route,
         navigationCommand.inclusive
       )
+
       is ComposeNavigationCommand.NavigateUpWithResult<*> -> {
         navUpWithResult(navigationCommand)
       }
@@ -82,6 +84,4 @@ abstract class AppComposeNavigator : Navigator() {
       navigateUp()
     }
   }
-
-  fun canNavUp(navController: NavController): Boolean = navController.backQueue.isNotEmpty()
 }

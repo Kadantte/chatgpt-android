@@ -1,5 +1,5 @@
 /*
- * Designed and developed by 2022 skydoves (Jaewoong Eum)
+ * Designed and developed by 2024 skydoves (Jaewoong Eum)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,11 +23,13 @@ import com.skydoves.chatgpt.feature.chat.BuildConfig
 import com.skydoves.chatgpt.feature.chat.di.ChatEntryPoint
 import io.getstream.chat.android.client.ChatClient
 import io.getstream.chat.android.client.logger.ChatLogLevel
-import io.getstream.chat.android.client.models.User
-import io.getstream.chat.android.offline.model.message.attachments.UploadAttachmentsNetworkType
-import io.getstream.chat.android.offline.plugin.configuration.Config
+import io.getstream.chat.android.models.ConnectionData
+import io.getstream.chat.android.models.User
 import io.getstream.chat.android.offline.plugin.factory.StreamOfflinePluginFactory
+import io.getstream.chat.android.state.plugin.config.StatePluginConfig
+import io.getstream.chat.android.state.plugin.factory.StreamStatePluginFactory
 import io.getstream.log.streamLog
+import io.getstream.result.call.Call
 import javax.inject.Inject
 import kotlin.random.Random
 
@@ -36,7 +38,7 @@ import kotlin.random.Random
  */
 class StreamChatInitializer : Initializer<Unit> {
 
-  @set:Inject
+  @Inject
   internal lateinit var preferences: Preferences
 
   override fun create(context: Context) {
@@ -51,16 +53,17 @@ class StreamChatInitializer : Initializer<Unit> {
      */
     val logLevel = if (BuildConfig.DEBUG) ChatLogLevel.ALL else ChatLogLevel.NOTHING
     val offlinePluginFactory = StreamOfflinePluginFactory(
-      config = Config(
+      appContext = context
+    )
+    val statePluginFactory = StreamStatePluginFactory(
+      config = StatePluginConfig(
         backgroundSyncEnabled = true,
-        userPresence = true,
-        persistenceEnabled = true,
-        uploadAttachmentsNetworkType = UploadAttachmentsNetworkType.NOT_ROAMING
+        userPresence = true
       ),
       appContext = context
     )
-    val chatClient = ChatClient.Builder(BuildConfig.STREAM_CHAT_SDK, context)
-      .withPlugin(offlinePluginFactory)
+    val chatClient = ChatClient.Builder(BuildConfig.STREAM_API_KEY, context)
+      .withPlugins(offlinePluginFactory, statePluginFactory)
       .logLevel(logLevel)
       .build()
 
@@ -71,7 +74,16 @@ class StreamChatInitializer : Initializer<Unit> {
     )
 
     val token = chatClient.devToken(user.id)
-    chatClient.connectUser(user, token).enqueue()
+    chatClient.connectUser(user, token).enqueue(object : Call.Callback<ConnectionData> {
+      override fun onResult(result: io.getstream.result.Result<ConnectionData>) {
+        if (result.isFailure) {
+          streamLog {
+            "Can't connect user. Please check the app README.md and ensure " +
+              "**Disable Auth Checks** is ON in the Dashboard"
+          }
+        }
+      }
+    })
   }
 
   override fun dependencies(): List<Class<out Initializer<*>>> =

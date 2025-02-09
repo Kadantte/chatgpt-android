@@ -1,5 +1,5 @@
 /*
- * Designed and developed by 2022 skydoves (Jaewoong Eum)
+ * Designed and developed by 2024 skydoves (Jaewoong Eum)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,9 +21,11 @@ plugins {
   id("skydoves.spotless")
 }
 
+android {
+  namespace = "com.skydoves.chatgpt.feature.login"
+}
+
 dependencies {
   implementation(libs.androidx.lifecycle.runtimeCompose)
   implementation(libs.androidx.lifecycle.viewModelCompose)
-
-  implementation(libs.webview.inspector)
 }

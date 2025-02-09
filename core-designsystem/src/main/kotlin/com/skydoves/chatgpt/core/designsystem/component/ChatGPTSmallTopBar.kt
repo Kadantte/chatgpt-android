@@ -1,5 +1,5 @@
 /*
- * Designed and developed by 2022 skydoves (Jaewoong Eum)
+ * Designed and developed by 2024 skydoves (Jaewoong Eum)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ package com.skydoves.chatgpt.core.designsystem.component
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SmallTopAppBar
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -28,7 +28,7 @@ import com.skydoves.chatgpt.core.designsystem.theme.ChatGPTComposeTheme
 
 @Composable
 fun ChatGPTSmallTopBar(title: String) {
-  SmallTopAppBar(
+  TopAppBar(
     modifier = Modifier.fillMaxWidth(),
     title = {
       Text(
@@ -37,7 +37,7 @@ fun ChatGPTSmallTopBar(title: String) {
         style = MaterialTheme.typography.titleLarge
       )
     },
-    colors = TopAppBarDefaults.smallTopAppBarColors(
+    colors = TopAppBarDefaults.mediumTopAppBarColors(
       containerColor = MaterialTheme.colorScheme.primary
     )
   )

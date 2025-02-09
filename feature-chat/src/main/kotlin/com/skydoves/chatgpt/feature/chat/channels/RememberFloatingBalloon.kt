@@ -1,5 +1,5 @@
 /*
- * Designed and developed by 2022 skydoves (Jaewoong Eum)
+ * Designed and developed by 2024 skydoves (Jaewoong Eum)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,10 @@ import com.skydoves.balloon.BalloonSizeSpec
 import com.skydoves.balloon.compose.rememberBalloonBuilder
 import com.skydoves.balloon.compose.setBackgroundColor
 import com.skydoves.balloon.compose.setTextColor
-import com.skydoves.chatgpt.core.designsystem.theme.PURPLE500
+import com.skydoves.chatgpt.core.designsystem.theme.STREAM_PRIMARY
 
 @Composable
-fun rememberFloatingBalloon() = rememberBalloonBuilder {
+internal fun rememberFloatingBalloon() = rememberBalloonBuilder {
   setWidthRatio(1.0f)
   setHeight(BalloonSizeSpec.WRAP)
   setArrowPositionRules(ArrowPositionRules.ALIGN_ANCHOR)
@@ -40,6 +40,6 @@ fun rememberFloatingBalloon() = rememberBalloonBuilder {
   setTextSize(15f)
   setCornerRadius(8f)
   setTextColor(Color.White)
-  setBackgroundColor(PURPLE500)
+  setBackgroundColor(STREAM_PRIMARY)
   setBalloonAnimation(BalloonAnimation.ELASTIC)
 }
